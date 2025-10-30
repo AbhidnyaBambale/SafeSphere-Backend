@@ -12,6 +12,10 @@ public class SafeSphereDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<PanicAlert> PanicAlerts { get; set; }
     public DbSet<SOSAlert> SOSAlerts { get; set; }
+    public DbSet<UnsafeZone> UnsafeZones { get; set; }
+    public DbSet<SafeRoute> SafeRoutes { get; set; }
+    public DbSet<WeatherAlert> WeatherAlerts { get; set; }
+    public DbSet<DisasterAlert> DisasterAlerts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,6 +61,61 @@ public class SafeSphereDbContext : DbContext
                 .WithMany(u => u.SOSAlerts)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // UnsafeZone configuration
+        modelBuilder.Entity<UnsafeZone>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.Severity).IsRequired().HasMaxLength(50).HasDefaultValue("Medium");
+            entity.Property(e => e.ThreatType).IsRequired().HasMaxLength(50).HasDefaultValue("Other");
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("Active");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.RadiusMeters).HasDefaultValue(500);
+        });
+
+        // SafeRoute configuration
+        modelBuilder.Entity<SafeRoute>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.RouteCoordinates).IsRequired();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.IsActive).HasDefaultValue(false);
+            entity.Property(e => e.SafetyScore).HasDefaultValue(0);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // WeatherAlert configuration
+        modelBuilder.Entity<WeatherAlert>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.LocationName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.WeatherCondition).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Description).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Severity).IsRequired().HasMaxLength(50).HasDefaultValue("Info");
+            entity.Property(e => e.IssuedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.HasIndex(e => e.ExternalAlertId);
+        });
+
+        // DisasterAlert configuration
+        modelBuilder.Entity<DisasterAlert>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).IsRequired().HasMaxLength(1000);
+            entity.Property(e => e.DisasterType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.AffectedArea).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Severity).IsRequired().HasMaxLength(50).HasDefaultValue("Moderate");
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("Active");
+            entity.Property(e => e.IssuedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(e => e.ExternalAlertId);
         });
 
         // Seed sample data

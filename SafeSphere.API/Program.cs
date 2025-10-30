@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SafeSphere.API.Data;
 using SafeSphere.API.Repositories;
 using SafeSphere.API.Services;
+using SafeSphere.API.Services.External;
 using Serilog;
 
 // Configure Serilog
@@ -29,10 +30,18 @@ try
     // Register repositories
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<IAlertRepository, AlertRepository>();
+    builder.Services.AddScoped<IRouteRepository, RouteRepository>();
+    builder.Services.AddScoped<IWeatherAlertRepository, WeatherAlertRepository>();
 
     // Register services
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IAlertService, AlertService>();
+    builder.Services.AddScoped<ISafeRouteService, SafeRouteService>();
+    builder.Services.AddScoped<IWeatherAlertService, WeatherAlertService>();
+    builder.Services.AddScoped<IDisasterAlertService, DisasterAlertService>();
+
+    // Register external services
+    builder.Services.AddHttpClient<IWeatherApiService, OpenWeatherMapService>();
 
     // Add AutoMapper
     builder.Services.AddAutoMapper(typeof(Program));
